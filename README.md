@@ -3,6 +3,10 @@ Acts As QA
 
 Acts_as_qa checks all the actions defined in application and checks the response if it is success or not.
 
+Requirement
+============
+
+Rails 3
 
 Install as Gem
 ==============
@@ -78,6 +82,3 @@ Now you can remove the following line in 'Gemfile'
 		gem 'acts_as_qa'
 		
 or you can remove the plugin from '/vendor/plugins/'
-
-
-Note: This Gem/Plugin is compatible with rails 3.
