@@ -59,7 +59,9 @@ Now open 'database.yml' and modify it according to your requirement. Note that t
 
 Now start the server in 'acts_as_qa' environment and the the application is ready to test. Now you can test your application by Running:
 
-		rake acts_as_qa:hit[http://localhost:3000]
+		rake acts_as_qa:hit[ROOT_URL]
+		
+Where ROOT_URL can be 'http://localhost:3000'
 		
 Now you can see the response from each actions.
 
