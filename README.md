@@ -17,7 +17,7 @@ Now run:
 
 
 Install as Plugin
-==============
+=================
 
 To install as plugin run:
 	
