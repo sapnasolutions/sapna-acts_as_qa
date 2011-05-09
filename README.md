@@ -23,8 +23,8 @@ To install as plugin run:
 	
 	rails plugin install git@github.com:sapnasolutions/sapna-acts_as_qa.git
 		
-Use
-====
+Getting started
+===============
 
 Now run the rake task
 
