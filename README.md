@@ -61,7 +61,7 @@ Now start the server in 'acts_as_qa' environment and the the application is read
 
 		rake acts_as_qa:hit[ROOT_URL]
 		
-Where ROOT_URL can be 'http://localhost:3000'
+Where ROOT_URL can be http://localhost:3000
 		
 Now you can see the response from each actions.
 
