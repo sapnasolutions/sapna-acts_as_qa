@@ -42,7 +42,29 @@ format of the parameters:
 		
 so for show action for posts controller it will be:
 
-		#QA :id => Post.first.id
+		#QA :id => Post.first.id 
+		
+or
+
+		#QA :id => :post
+		
+or 
+		
+		#QA :id => :integer
+		
+When a symbol is passed like :post or :integer, it will automatically generate data. when the symbol is a name of model it will first generate attribute of some random model instance. Like if its :author_id => post then it will find some random author_id from Post. then it will also generate some random integer, date string, float etc. The possible datatypes are:
+
+		:boolean
+		:date
+		:datetime
+		:decimal
+		:float
+		:integer
+		:string
+
+To test a action logged in and logged out mode add :user in parameters.
+
+		#QA :user => [:user, :admin, nil]
 		
 Now open 'application_controller.rb' where you can see a piece of code:
 
@@ -55,11 +77,19 @@ Now open 'application_controller.rb' where you can see a piece of code:
 	    end
 	  end
 	
-This filter will set a user session for the action. So if you are using devise gem for authentication you can add following line in the code:
+This filter will set a user session for the action. So you can modify this code. Example:		
+
+	  def set_current_user_for_qa
+	    if Rails.env=='acts_as_qa'
+	      session[:user_id]=1 if params[:user]=='admin'
+				session[:user_id]=2 if params[:user]=='user'
+	    end
+	  end
+
+
+Similarly if you are using devise gem for authentication you can add following line in the code:
 
 		session["warden.user.user.key"] = ["User", [15], "$2a$10$RSVEtVgr4UGwwnbGNPn9se"]
-
-Now open 'database.yml' and modify it according to your requirement. Note that this will delete/edit the record from database. So do not use a database which you don't want to modify.
 
 Now start the server in 'acts_as_qa' environment and the the application is ready to test. Now you can test your application by Running:
 
