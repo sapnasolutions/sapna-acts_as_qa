@@ -79,7 +79,7 @@ module ActsAsQA
       puts "please enter root_url (example: http://localhost)" and return unless root_url 
       paths_to_hit = fetch_controller_parameters
       paths_to_hit.each do |path|
-        #begin
+        begin
           parameters_list = ActsAsQA::QAA.instance_eval path.chomp
           parameters_list.each do |parameters|
             path_details = nil
@@ -98,9 +98,9 @@ module ActsAsQA
               end
             end# end of file open
           end
-        # rescue Exception => e
-        #           puts ActsAsQA::Display.colorize("Wrong parameters for #{path}. Error: #{e}", 31)
-        #         end
+        rescue Exception => e
+                          puts ActsAsQA::Display.colorize("Wrong parameters for #{path}. Error: #{e}", 31)
+                        end
       end # end of paths to hit
       show_result
     end

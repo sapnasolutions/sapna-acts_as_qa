@@ -65,17 +65,6 @@ module ActsAsQA
       end
     end
     
-    def self.generate_parameters(params)
-      params.each do|k, v|  
-        if self.datatypes.include?(v)
-          params[k]=random_value(v) 
-        elsif v.class==Class and v.descends_from_active_record?
-          params[k]=(eval("#{v}.all.map(&:#{k.to_s})").rand rescue eval("#{v}.all.map(&:id)").rand)
-        end
-      end
-      params
-    end
-    
     def self.datatypes
       return [:boolean, :date, :datetime, :decimal, :float, :integer, :string, :nil, :blank]
     end
