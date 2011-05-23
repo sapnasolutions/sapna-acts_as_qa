@@ -47,7 +47,7 @@ module ActsAsQA
               parameters_multiply(path_list, list_value, repeat)
             end
             # Generates more random data based on the value of 'repeat'.
-            repeat-count.times do
+            (repeat-count).times do
               dt = (self.datatypes-done).rand
               done << dt
               list_value = parameters.dup

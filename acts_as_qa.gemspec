@@ -3,7 +3,7 @@ Gem::Specification.new do |s|
   s.author            = "SapnaSolutions"
   s.email             = "contact@sapnasolutions.com"
   s.name              = 'acts_as_qa'
-  s.version           = '1.0.3'
+  s.version           = '1.0.4'
   s.description       = 'Check the routes of a Rails Application'
   s.date              = '2011-05-05'
   s.summary           = 'Check the routes of a Rails Application'
