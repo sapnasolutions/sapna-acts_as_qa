@@ -118,3 +118,12 @@ Now you can remove the following line in 'Gemfile'
 		gem 'acts_as_qa'
 		
 or you can remove the plugin from '/vendor/plugins/'
+
+Note
+===========
+
+If you get following error while running 'acts_as_qa:setup'
+
+	acts_as_qa database is not configured
+	
+Just try to run same task once again.
