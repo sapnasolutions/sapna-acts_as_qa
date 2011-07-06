@@ -99,7 +99,7 @@ Similarly if you are using devise gem for authentication you can add following l
 
 Now start the server in 'acts_as_qa' environment and the the application is ready to test. Now you can test your application by Running:
 
-		rake acts_as_qa:hit[ROOT_URL]
+		rake acts_as_qa:hit_paths[ROOT_URL]
 		
 Where ROOT_URL can be http://localhost:3000
 		

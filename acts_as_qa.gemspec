@@ -10,5 +10,6 @@ Gem::Specification.new do |s|
   s.require_paths     = %w(lib)
   s.files             = Dir['lib/**/*', 'rails/**/*', 'Rakefile', 'README.md', 'MIT-LICENSE']
   s.add_dependency 'random_data'
+  s.add_dependency 'yamler'
   s.add_dependency 'yaml_db'
 end

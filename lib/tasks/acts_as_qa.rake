@@ -1,8 +1,10 @@
 namespace :acts_as_qa do
   desc "creates the first set of min max data for when the database is reloaded from scratch."
   task :hit_paths, :root_url, :needs => :environment do |t, args|
+    ActiveRecord::Base.establish_connection('development')
+    Rake::Task["db:dump"].invoke
     ActiveRecord::Base.establish_connection('acts_as_qa')
-    Rake::Task["db:data:load"].invoke
+    Rake::Task["db:load"].invoke
     ApplicationController.send :include, ActsAsQA
     ApplicationController.hit_path(args[:root_url])
   end
@@ -20,21 +22,20 @@ namespace :acts_as_qa do
     end# end of each
     create_new_env
     modify_database
-    ActiveRecord::Base.establish_connection('development')
-    Rake::Task["db:data:dump"].invoke
     system("rake db:create RAILS_ENV=acts_as_qa")
     ActiveRecord::Base.establish_connection('acts_as_qa')
-    Rake::Task["db:migrate"].invoke
+    # Rake::Task["db:migrate"].invoke
     puts "========================================================================="
     puts "Modify parameters for each action"
     puts "Modify 'set_current_user_for_qa' filter in application_controller.rb"
     puts "Start the server in 'acts_as_qa' environment"
-    puts "Run 'Rake acts_as_qa:hit[http://localhost:3000]'"
+    puts "Run 'Rake acts_as_qa:hit_paths[http://localhost:3000]'"
     puts "=========================================================================="
   end# end of task
   
   desc "remove parameters at for each action"
   task :remove, :needs => :environment do
+    File.delete("#{Rails.root}/db/data.yml") rescue nil
     ApplicationController.send :include, ActsAsQA
     controller_files = ApplicationController.fetch_controllers
     controller_files.each do |file_name|

@@ -1,4 +1,6 @@
 # ActsAsQa
+require 'yaml'
+YAML::ENGINE.yamler= 'syck'
 require 'yaml_db'
 require 'random_data'
 require 'acts_as_qa/railtie'
