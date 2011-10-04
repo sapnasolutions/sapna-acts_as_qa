@@ -1,53 +1,46 @@
 namespace :acts_as_qa do
   desc "creates the first set of min max data for when the database is reloaded from scratch."
-  task :hit_paths, :root_url, :needs => :environment do |t, args|
-    ActiveRecord::Base.establish_connection('development')
-    Rake::Task["db:dump"].invoke
-    ActiveRecord::Base.establish_connection('acts_as_qa')
-    Rake::Task["db:load"].invoke
+  task :hit_paths, [:root_url,:repeat] => :environment do |t, args|
     ApplicationController.send :include, ActsAsQA
-    ApplicationController.hit_path(args[:root_url])
+    ApplicationController.hit_path(args[:root_url], args[:repeat])
   end
   
   desc "Add parameters for each action"
-  task :setup, :controller_name, :needs => :environment do |t, args|
+  task :setup, [:controller_name] => :environment do |t, args|
     ApplicationController.send :include, ActsAsQA
     controller_files = args[:controller_name] ? [args[:controller_name], "application_controller.rb"] : ApplicationController.fetch_controllers
-    controller_files.each do |file_name|
-      unless file_name.match('application_controller')
-        add_parameters(file_name)
-      else
-        add_filter
-      end
-    end# end of each
+    controller_files.each{|file_name| file_name.match('application_controller') ? add_filter : add_parameters(file_name)}
     create_new_env
-    modify_database
+    modify_database_yaml
     system("rake db:create RAILS_ENV=acts_as_qa")
-    ActiveRecord::Base.establish_connection('acts_as_qa')
-    # Rake::Task["db:migrate"].invoke
     puts "========================================================================="
-    puts "Modify parameters for each action"
-    puts "Modify 'set_current_user_for_qa' filter in application_controller.rb"
-    puts "Start the server in 'acts_as_qa' environment"
-    puts "Run 'Rake acts_as_qa:hit_paths[http://localhost:3000]'"
+    puts "Please follow the following instructions:"
+    puts "  STEP 1: Modify parameters for each action."
+    puts "  STEP 2: Modify 'set_current_user_for_qa' filter in application_controller.rb."
+    puts "  STEP 3: Follow the one the following option:"
+    puts "    OPTION 1:" 
+    puts "      STEP 3a: Take a dump of development datacase as acts_as_qa add/delete/update the records."
+    puts "      STEP 3b: Run your server in development environment."
+    puts "      STEP 3c: Run 'Rake acts_as_qa:hit_paths[http://localhost:3000]'."
+    puts "      STEP 3d: Copy back the old database."
+    puts "    OPTION2:" 
+    puts "      STEP 3a: If you don't want to modify your local database you can follow option 2. acts_as_qa environment and {YOUR_APP_NAME}_acts_as_qa database has already been created. Run rake db:migrate RATLS_ENV=acts_as_qa"
+    puts "      STEP 3b: Add Records to {YOUR_APP_NAME}_acts_as_qa database by coping data from fixtures or development database"
+    puts "      STEP 3c: Run your server in acts_as_qa environment"
+    puts "      STEP 3d: Now Run 'Rake acts_as_qa:hit_paths[http://localhost:3000]'."
     puts "=========================================================================="
   end# end of task
   
   desc "remove parameters at for each action"
-  task :remove, :needs => :environment do
+  task :remove => :environment do
+    system("rake db:drop RAILS_ENV=acts_as_qa")
     File.delete("#{Rails.root}/db/data.yml") rescue nil
     ApplicationController.send :include, ActsAsQA
     controller_files = ApplicationController.fetch_controllers
-    controller_files.each do |file_name|
-      unless file_name.match('application_controller')
-        remove_parameters(file_name)
-      else
-        remove_filter
-      end
-    end# end of each
+    controller_files.each{|file_name| file_name.match('application_controller') ? remove_filter : remove_parameters(file_name)}
     remove_env
     remove_from_database
-  end# end of task
+  end
   
   def create_new_env
     unless File.exist?("#{Rails.root}/config/environments/acts_as_qa.rb")
@@ -67,20 +60,8 @@ namespace :acts_as_qa do
   def remove_env
     File.delete("#{Rails.root}/config/environments/acts_as_qa.rb") rescue nil
   end
-
-  def modify_gemfile
-    file = File.expand_path('Gemfile', "#{Rails.root}")
-    File.open(file, 'r') do |f|
-      lines = f.readlines
-      unless lines.join.match('yaml_db')
-        content = "\ngem 'yaml_db'\n"
-        File.open(file, 'a'){|f| f.write(content)}
-        system("bundle install")
-      end#end of unless
-    end # end of file open
-  end
   
-  def modify_database
+  def modify_database_yaml
     content=""
     db = YAML.load_file("#{Rails.root}/config/database.yml")
     unless db["acts_as_qa"]
@@ -97,59 +78,61 @@ namespace :acts_as_qa do
   end
   
   def add_filter
-    file = File.expand_path('application_controller.rb', "#{Rails.root}/app/controllers")
     content = ""
+    file = File.expand_path('application_controller.rb', "#{Rails.root}/app/controllers")
     File.open(file, 'r') do |f|
       lines = f.readlines
       unless lines.join.match('set_current_user_for_qa')
-        lines.each do |line|
-          content << line if line
-          content << "\n  #Generated by acts as qa\n  before_filter :set_current_user_for_qa\n\n  def set_current_user_for_qa\n    if Rails.env=='acts_as_qa'\n      #session[:user_id]='1'\n    end\n  end\n\n" if line.include?('ApplicationController')
-        end # end of each
-        File.open(file, 'w'){|f| f.write(content)}
-      end#end of unless
+      lines.each do |line|
+        content << line if line
+        content << "\n  #Generated by acts as qa\n  before_filter :set_current_user_for_qa\n\n  def set_current_user_for_qa\n    if Rails.env=='acts_as_qa'\n      #session[:user_id]='1'\n    end\n  end\n\n" if line.include?('ApplicationController')
+      end # end of each
+      File.open(file, 'w'){|f| f.write(content)}
+    end#end of unless
     end # end of file open
   end
 
   def remove_filter
     file = File.expand_path('application_controller.rb', "#{Rails.root}/app/controllers")
-    content = ""
     flag=false
+    content=""
     File.open(file, 'r') do |f|
       while(line = f.gets)
-        if line.match('def set_current_user_for_qa')
-          flag=true
-        end
+        flag=true if line.match('def set_current_user_for_qa')
         content << line unless flag or line.match('before_filter :set_current_user_for_qa') or line.match('acts as qa')
-        if flag and line.match(/^  end/)
-          flag = false
-        end
+        flag = false if flag and line.match(/^  end/)
       end # end of while
     end # end of file open
     File.open(file, 'w'){|f| f.write(content)}
   end
   
   def add_parameters(file_name)
+    content=""
     file = File.expand_path(file_name, "#{Rails.root}/app/controllers")
-    content = ""
     File.open(file, 'r') do |f|
       controller_name = file_name.split('_controller')[0]
       controller = file_name.split('/').collect{|x| x.split('_').collect{|y| y.capitalize}.join('')}.join('::').split('.')[0]
       model_name = controller_name.split('/').last.singularize
-      lines = f.readlines 
-      lines.each_index do |i|
-        line = lines[i]
-        content << line
-        if line.include?('def') && !lines[i+1].include?('#QA')
-          action = line.split('def').last.split(';').first.strip
-          if eval(controller).public_instance_methods.include?(action.to_sym)
-            parameters = action.match(/edit|update|destroy|show/) ? ":id => :#{model_name}" : ''
-            content << "#{line.split('def')[0]}  #QA #{parameters}\n"
-          end
-        end
-      end # end of each_index
+      lines = f.readlines
+      content=add_qa_comments(lines, controller, model_name) 
     end # end of file open
     File.open(file, 'w'){|f| f.write(content)}
+  end
+  
+  def add_qa_comments(lines, controller, model_name)
+    content=""
+    lines.each_index do |i|
+      line = lines[i]
+      content << line
+      if line.include?('def') && !lines[i+1].include?('#QA')
+        action = line.split('def').last.split(';').first.strip
+        if eval(controller).public_instance_methods.include?(action.to_sym)
+          parameters = action.match(/edit|update|destroy|show/) ? ":id => :#{model_name}" : ''
+          content << "#{line.split('def')[0]}  #QA #{parameters}\n"
+        end
+      end
+    end # end of each_index
+    content
   end
 
   def remove_parameters(file_name)
